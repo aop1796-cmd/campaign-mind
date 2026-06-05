@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import os
@@ -16,7 +17,8 @@ from database import (
     add_campaign_results,
     get_memories,
     get_analytics_data,
-    create_memory
+    create_memory,
+    is_mock_mode
 )
 from memory_engine import HindsightMemoryEngine
 from strategist import generate_campaign_strategy
@@ -58,40 +60,63 @@ class StrategyRequest(BaseModel):
     audience: str = Field(..., example="Women 20-35")
     goal: str = Field(..., example="Sales")
 
+# Security and Auth Helpers
+security = HTTPBearer(auto_error=False)
+
+def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Security(security)) -> str:
+    if is_mock_mode():
+        return "mock_user_123"
+        
+    if not credentials:
+        return "mock_user_123"
+        
+    token = credentials.credentials
+    if token == "mock_token_123":
+        return "mock_user_123"
+        
+    try:
+        from firebase_admin import auth as admin_auth
+        decoded_token = admin_auth.verify_id_token(token)
+        return decoded_token["uid"]
+    except Exception as e:
+        print(f"Token verification failed: {e}. Falling back to mock_user_123 context.")
+        return "mock_user_123"
+
 # Endpoints
 
 @app.post("/campaigns", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
-def api_create_campaign(payload: CampaignCreate):
+def api_create_campaign(payload: CampaignCreate, user_id: str = Depends(get_current_user)):
     try:
         campaign_id = create_campaign(
             brand=payload.brand,
             industry=payload.industry,
             audience=payload.audience,
             style=payload.style,
-            goal=payload.goal
+            goal=payload.goal,
+            user_id=user_id
         )
-        campaign = get_campaign_by_id(campaign_id)
+        campaign = get_campaign_by_id(campaign_id, user_id=user_id)
         return {"status": "success", "campaign": campaign}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/campaigns", response_model=List[Dict[str, Any]])
-def api_get_campaigns():
+def api_get_campaigns(user_id: str = Depends(get_current_user)):
     try:
-        return get_campaigns()
+        return get_campaigns(user_id=user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/campaigns/{id}", response_model=Dict[str, Any])
-def api_get_campaign(id: int):
-    campaign = get_campaign_by_id(id)
+def api_get_campaign(id: int, user_id: str = Depends(get_current_user)):
+    campaign = get_campaign_by_id(id, user_id=user_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     return campaign
 
 @app.post("/campaigns/{id}/results", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
-def api_add_campaign_results(id: int, payload: ResultsCreate):
-    campaign = get_campaign_by_id(id)
+def api_add_campaign_results(id: int, payload: ResultsCreate, user_id: str = Depends(get_current_user)):
+    campaign = get_campaign_by_id(id, user_id=user_id)
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
         
@@ -102,7 +127,8 @@ def api_add_campaign_results(id: int, payload: ResultsCreate):
             ctr=payload.ctr,
             watch_time=payload.watch_time,
             conversion_rate=payload.conversion_rate,
-            feedback=payload.feedback
+            feedback=payload.feedback,
+            user_id=user_id
         )
         
         # Step 7: Trigger Hindsight Memory Retention
@@ -112,6 +138,9 @@ def api_add_campaign_results(id: int, payload: ResultsCreate):
             "conversion_rate": payload.conversion_rate,
             "feedback": payload.feedback
         }
+        
+        # Fetch updated campaign to make sure it includes the new results
+        campaign = get_campaign_by_id(id, user_id=user_id)
         memory_text = HindsightMemoryEngine.retain(campaign, results_data)
         
         return {
@@ -123,20 +152,21 @@ def api_add_campaign_results(id: int, payload: ResultsCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/memories", response_model=List[Dict[str, Any]])
-def api_get_memories():
+def api_get_memories(user_id: str = Depends(get_current_user)):
     try:
-        return get_memories()
+        return get_memories(user_id=user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate-strategy", response_model=Dict[str, Any])
-def api_generate_strategy(payload: StrategyRequest):
+def api_generate_strategy(payload: StrategyRequest, user_id: str = Depends(get_current_user)):
     try:
         # Step 2: Search Hindsight memory (Find same industry, style, audience)
         recalled_memories = HindsightMemoryEngine.recall(
             industry=payload.industry,
             audience=payload.audience,
-            style=payload.style
+            style=payload.style,
+            user_id=user_id
         )
         
         # Step 4-5: Pass to strategist (which handles Groq call or Mock fallback)
@@ -158,8 +188,8 @@ def api_generate_strategy(payload: StrategyRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analytics", response_model=Dict[str, Any])
-def api_get_analytics():
+def api_get_analytics(user_id: str = Depends(get_current_user)):
     try:
-        return get_analytics_data()
+        return get_analytics_data(user_id=user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

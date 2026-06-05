@@ -66,11 +66,26 @@ export interface AnalyticsData {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
+  
+  let token: string | null = null;
+  if (typeof window !== 'undefined') {
+    token = localStorage.getItem('firebase_id_token');
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
     ...options,
+    headers: {
+      ...headers,
+      ...(options?.headers as Record<string, string> || {}),
+    },
   });
 
   if (!response.ok) {

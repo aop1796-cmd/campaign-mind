@@ -38,7 +38,7 @@ def init_db():
 
 _last_campaign_id = 0
 
-def create_campaign(brand: str, industry: str, audience: str, style: str, goal: str) -> int:
+def create_campaign(brand: str, industry: str, audience: str, style: str, goal: str, user_id: str = "mock_user_123") -> int:
     global _last_campaign_id
     client = get_db()
     # Generate a unique integer ID based on current epoch time in milliseconds
@@ -55,16 +55,17 @@ def create_campaign(brand: str, industry: str, audience: str, style: str, goal: 
         "audience": audience,
         "style": style,
         "goal": goal,
-        "created_at": created_at
+        "created_at": created_at,
+        "user_id": user_id
     }
     
     # Store in "campaigns" collection using the string version of the integer as document name
     client.collection("campaigns").document(str(campaign_id)).set(data)
     return campaign_id
 
-def get_campaigns() -> List[Dict[str, Any]]:
+def get_campaigns(user_id: str = "mock_user_123") -> List[Dict[str, Any]]:
     client = get_db()
-    c_docs = client.collection("campaigns").stream()
+    c_docs = client.collection("campaigns").where("user_id", "==", user_id).stream()
     campaigns = []
     
     for doc in c_docs:
@@ -93,7 +94,7 @@ def get_campaigns() -> List[Dict[str, Any]]:
     campaigns.sort(key=lambda x: x.get("id", 0), reverse=True)
     return campaigns
 
-def get_campaign_by_id(campaign_id: int) -> Optional[Dict[str, Any]]:
+def get_campaign_by_id(campaign_id: int, user_id: str = "mock_user_123") -> Optional[Dict[str, Any]]:
     client = get_db()
     doc = client.collection("campaigns").document(str(campaign_id)).get()
     
@@ -101,7 +102,9 @@ def get_campaign_by_id(campaign_id: int) -> Optional[Dict[str, Any]]:
         return None
         
     camp = doc.to_dict()
-    
+    if camp.get("user_id") != user_id:
+        return None
+        
     # Fetch results
     r_docs = client.collection("campaign_results").where("campaign_id", "==", campaign_id).stream()
     results = [r.to_dict() for r in r_docs]
@@ -118,9 +121,15 @@ def get_campaign_by_id(campaign_id: int) -> Optional[Dict[str, Any]]:
 
 _last_result_id = 0
 
-def add_campaign_results(campaign_id: int, ctr: float, watch_time: float, conversion_rate: float, feedback: str) -> int:
+def add_campaign_results(campaign_id: int, ctr: float, watch_time: float, conversion_rate: float, feedback: str, user_id: str = "mock_user_123") -> int:
     global _last_result_id
     client = get_db()
+    
+    # Verify campaign exists and belongs to the user
+    camp = get_campaign_by_id(campaign_id, user_id=user_id)
+    if not camp:
+        raise ValueError(f"Campaign with ID {campaign_id} not found or access denied.")
+        
     created_at = datetime.utcnow().isoformat()
     # Generate unique result id based on milliseconds
     result_id = int(time.time() * 1000)
@@ -135,7 +144,8 @@ def add_campaign_results(campaign_id: int, ctr: float, watch_time: float, conver
         "watch_time": watch_time,
         "conversion_rate": conversion_rate,
         "feedback": feedback,
-        "created_at": created_at
+        "created_at": created_at,
+        "user_id": user_id
     }
     
     client.collection("campaign_results").document(str(result_id)).set(data)
@@ -143,7 +153,7 @@ def add_campaign_results(campaign_id: int, ctr: float, watch_time: float, conver
 
 _last_memory_id = 0
 
-def create_memory(memory_text: str, campaign_id: int) -> int:
+def create_memory(memory_text: str, campaign_id: int, user_id: str = "mock_user_123") -> int:
     global _last_memory_id
     client = get_db()
     created_at = datetime.utcnow().isoformat()
@@ -157,15 +167,16 @@ def create_memory(memory_text: str, campaign_id: int) -> int:
         "id": memory_id,
         "memory_text": memory_text,
         "campaign_id": campaign_id,
-        "created_at": created_at
+        "created_at": created_at,
+        "user_id": user_id
     }
     
     client.collection("memories").document(str(memory_id)).set(data)
     return memory_id
 
-def get_memories() -> List[Dict[str, Any]]:
+def get_memories(user_id: str = "mock_user_123") -> List[Dict[str, Any]]:
     client = get_db()
-    m_docs = client.collection("memories").stream()
+    m_docs = client.collection("memories").where("user_id", "==", user_id).stream()
     memories = []
     
     for doc in m_docs:
@@ -188,13 +199,13 @@ def get_memories() -> List[Dict[str, Any]]:
     memories.sort(key=lambda x: x.get("id", 0), reverse=True)
     return memories
 
-def get_analytics_data() -> Dict[str, Any]:
+def get_analytics_data(user_id: str = "mock_user_123") -> Dict[str, Any]:
     client = get_db()
     
-    # Fetch all campaigns, results, and memories to aggregate in memory
-    c_docs = client.collection("campaigns").stream()
-    r_docs = client.collection("campaign_results").stream()
-    m_docs = client.collection("memories").stream()
+    # Fetch all campaigns, results, and memories to aggregate in memory, scoped to user_id
+    c_docs = client.collection("campaigns").where("user_id", "==", user_id).stream()
+    r_docs = client.collection("campaign_results").where("user_id", "==", user_id).stream()
+    m_docs = client.collection("memories").where("user_id", "==", user_id).stream()
     
     campaigns = {doc.id: doc.to_dict() for doc in c_docs}
     results = [doc.to_dict() for doc in r_docs]
@@ -305,3 +316,10 @@ def get_analytics_data() -> Dict[str, Any]:
             "memoriesStored": total_memories
         }
     }
+
+def is_mock_mode() -> bool:
+    """
+    Returns True if the database is using MockFirestoreClient instead of live Firestore.
+    """
+    from mock_firestore import MockFirestoreClient
+    return isinstance(get_db(), MockFirestoreClient)

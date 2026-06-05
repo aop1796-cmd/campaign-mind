@@ -25,21 +25,22 @@ class HindsightMemoryEngine:
         )
         
         # Save to DB
-        create_memory(memory_text, campaign["id"])
+        user_id = campaign.get("user_id", "mock_user_123")
+        create_memory(memory_text, campaign["id"], user_id=user_id)
         return memory_text
 
     @staticmethod
-    def recall(industry: str, audience: str, style: str) -> List[Dict[str, Any]]:
+    def recall(industry: str, audience: str, style: str, user_id: str = "mock_user_123") -> List[Dict[str, Any]]:
         """
         Recall: Search campaign database for historical campaigns with matching parameters.
         Retrieves campaigns in the same industry, style, or audience, sorted by CTR.
         """
         client = get_db()
         
-        # Stream all documents from Firestore collections
-        c_docs = client.collection("campaigns").stream()
-        r_docs = client.collection("campaign_results").stream()
-        m_docs = client.collection("memories").stream()
+        # Stream user-specific documents from Firestore collections
+        c_docs = client.collection("campaigns").where("user_id", "==", user_id).stream()
+        r_docs = client.collection("campaign_results").where("user_id", "==", user_id).stream()
+        m_docs = client.collection("memories").where("user_id", "==", user_id).stream()
         
         # Load campaigns into memory
         campaigns = {}

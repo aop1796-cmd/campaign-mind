@@ -63,7 +63,7 @@ export default function StrategistPage() {
       const response = await api.generateStrategy({ industry, style, audience, goal });
       
       await addLog(`Recall query finished: found ${response.retrievedMemories.length} relevant campaign memory nodes.`, 400);
-      await addLog("Reflecting on historical performance and client feedback feedback...", 300);
+      await addLog("Reflecting on historical performance and client feedback...", 300);
       
       if (response.retrievedMemories.length > 0) {
         const topCtr = Math.max(...response.retrievedMemories.map(m => m.ctr || 0));
@@ -72,8 +72,9 @@ export default function StrategistPage() {
         await addLog("No matching memories found. Performing benchmark fallback.", 250);
       }
       
-      await addLog("Synthesizing context prompts for Groq LLM (Llama-3-8B-8192)...", 300);
-      await addLog("Groq JSON generation completed successfully.", 400);
+      const provider = (response.strategy as any).provider || "Groq LLM (Llama-3-8B-8192)";
+      await addLog(`Synthesizing context prompts for ${provider}...`, 300);
+      await addLog(`${provider} JSON generation completed successfully.`, 400);
       
       setResult(response);
     } catch (err: any) {
@@ -278,7 +279,7 @@ export default function StrategistPage() {
                       Style: {result!.strategy.creativeStyle}
                     </span>
                     <span className="text-xs font-mono text-slate-400">
-                      Groq Llama-3 Output
+                      {(result!.strategy as any).provider || "Groq Llama-3 Output"}
                     </span>
                   </div>
 

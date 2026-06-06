@@ -7,19 +7,35 @@ from typing import List, Dict, Any, Optional
 
 db = None
 
+import json
+
 def get_db():
     global db
     if db is None:
-        cred_path = os.path.join(os.path.dirname(__file__), "service-account.json")
         try:
-            if not os.path.exists(cred_path):
-                raise FileNotFoundError(f"Firebase credentials not found at {cred_path}")
-            
-            # Avoid duplicate initialization
-            if not firebase_admin._apps:
-                cred = credentials.Certificate(cred_path)
-                firebase_admin.initialize_app(cred)
-            db = firestore.client()
+            service_account_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
+            if service_account_json:
+                try:
+                    service_account_info = json.loads(service_account_json)
+                    if not firebase_admin._apps:
+                        cred = credentials.Certificate(service_account_info)
+                        firebase_admin.initialize_app(cred)
+                    db = firestore.client()
+                    print("Firebase initialized successfully using environment variable.")
+                except Exception as env_e:
+                    print(f"Failed to initialize Firebase using environment variable: {env_e}")
+                    raise env_e
+            else:
+                cred_path = os.path.join(os.path.dirname(__file__), "service-account.json")
+                if not os.path.exists(cred_path):
+                    raise FileNotFoundError(f"Firebase credentials not found at {cred_path} and FIREBASE_SERVICE_ACCOUNT_JSON env var is not set.")
+                
+                # Avoid duplicate initialization
+                if not firebase_admin._apps:
+                    cred = credentials.Certificate(cred_path)
+                    firebase_admin.initialize_app(cred)
+                db = firestore.client()
+                print("Firebase initialized successfully using service-account.json.")
         except Exception as e:
             print(f"Firebase initialization failed: {e}. Falling back to in-memory MockFirestoreClient.")
             from mock_firestore import MockFirestoreClient

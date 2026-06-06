@@ -212,7 +212,9 @@ HINDSIGHT MEMORY CONTEXT:
             )
             
             response_text = completion.choices[0].message.content
-            return clean_and_parse_json(response_text)
+            strategy_dict = clean_and_parse_json(response_text)
+            strategy_dict["provider"] = "NVIDIA NIM (Llama-3.1-8b)"
+            return strategy_dict
         except Exception as e:
             print(f"Error calling NVIDIA NIM API: {e}. Checking Groq fallback...")
 
@@ -232,9 +234,13 @@ HINDSIGHT MEMORY CONTEXT:
             )
             
             response_text = completion.choices[0].message.content
-            return clean_and_parse_json(response_text)
+            strategy_dict = clean_and_parse_json(response_text)
+            strategy_dict["provider"] = "Groq API (Llama-3-8b)"
+            return strategy_dict
         except Exception as e:
             print(f"Error calling Groq API: {e}. Falling back to mock strategist.")
 
     # 3. Fallback to mock strategist
-    return run_mock_strategist(industry, style, audience, recalled_memories)
+    strategy_dict = run_mock_strategist(industry, style, audience, recalled_memories)
+    strategy_dict["provider"] = "Mock Simulator (Hindsight Fallback)"
+    return strategy_dict

@@ -172,7 +172,7 @@ export default function StrategistPage() {
               <button 
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-violet-600 to-cyan-500 hover:opacity-90 text-white rounded-xl text-xs font-bold transition-opacity flex items-center justify-center gap-2 shadow-lg shadow-violet-500/15"
+                className="w-full py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:opacity-90 text-white rounded-xl text-xs font-bold transition-opacity flex items-center justify-center gap-2 shadow-lg shadow-violet-500/15"
               >
                 {loading ? (
                   <>
@@ -192,17 +192,23 @@ export default function StrategistPage() {
 
           {/* Real-time System Terminal Logs */}
           {logs.length > 0 && (
-            <div className="border border-white/5 rounded-2xl bg-slate-950 p-4 font-mono text-[10px] text-slate-400 space-y-1.5 max-h-[200px] overflow-y-auto">
-              <div className="flex items-center gap-1.5 text-slate-500 border-b border-white/5 pb-2 mb-2 uppercase font-bold text-[9px] tracking-wider">
-                <Terminal className="w-3.5 h-3.5" />
-                <span>Memory Substrate Logs</span>
-              </div>
-              {logs.map((log, idx) => (
-                <div key={idx} className={log.startsWith('[error]') ? 'text-rose-400' : 'text-slate-400'}>
-                  {log}
+            <details className="group border border-white/5 rounded-2xl bg-slate-950 p-4 font-mono text-[10px] text-slate-400 overflow-hidden" open={false}>
+              <summary className="flex items-center justify-between cursor-pointer select-none text-slate-500 uppercase font-bold text-[9px] tracking-wider hover:text-slate-350 list-none [&::-webkit-details-marker]:hidden">
+                <div className="flex items-center gap-1.5">
+                  <Terminal className="w-3.5 h-3.5 text-violet-400" />
+                  <span>Memory Substrate Logs ({logs.length})</span>
                 </div>
-              ))}
-            </div>
+                <span className="text-[8px] text-slate-500 group-open:hidden">Expand Logs</span>
+                <span className="text-[8px] text-slate-500 hidden group-open:inline">Collapse Logs</span>
+              </summary>
+              <div className="mt-3 space-y-1.5 max-h-[160px] overflow-y-auto pt-2 border-t border-white/5">
+                {logs.map((log, idx) => (
+                  <div key={idx} className={log.startsWith('[error]') ? 'text-rose-400' : 'text-slate-400'}>
+                    {log}
+                  </div>
+                ))}
+              </div>
+            </details>
           )}
 
         </div>
@@ -276,7 +282,7 @@ export default function StrategistPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs font-semibold">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold relative group">
                     <span className="text-slate-500">Confidence:</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${
                       result!.strategy.confidence === "High" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
@@ -285,11 +291,18 @@ export default function StrategistPage() {
                     }`}>
                       {result!.strategy.confidence}
                     </span>
+                    <div className="w-3.5 h-3.5 rounded-full bg-slate-800 text-[10px] text-slate-400 flex items-center justify-center cursor-help select-none hover:text-white transition-colors">
+                      ?
+                    </div>
+                    <div className="absolute bottom-full right-0 mb-2 w-56 p-2.5 rounded-lg bg-slate-950 border border-white/10 shadow-2xl text-[10px] text-slate-350 leading-relaxed font-normal opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 z-50">
+                      <span className="font-bold text-white block mb-0.5">Hindsight Confidence</span>
+                      Confidence scales based on the match count of historical campaign memory nodes found in the SQLite substrate for the chosen brief.
+                    </div>
                   </div>
                 </div>
 
                 {/* Hook display card */}
-                <div className="bg-gradient-to-tr from-violet-600/10 to-cyan-500/10 border border-violet-500/20 rounded-2xl p-5 relative overflow-hidden">
+                <div className="bg-gradient-to-tr from-violet-600/10 to-fuchsia-600/10 border border-violet-500/20 rounded-2xl p-5 relative overflow-hidden">
                   <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest block mb-2">
                     Recommended Hook
                   </span>

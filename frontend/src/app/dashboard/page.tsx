@@ -96,6 +96,48 @@ export default function DashboardConsole() {
         </Link>
       </div>
 
+      {/* Onboarding Banner / How it Works */}
+      <div className="border border-violet-500/10 rounded-2xl bg-gradient-to-r from-violet-900/10 via-slate-900/20 to-violet-900/5 p-6 glass relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-violet-600/5 rounded-full blur-[60px] pointer-events-none" />
+        <h3 className="text-sm font-extrabold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Brain className="w-4.5 h-4.5 text-violet-400 animate-pulse" />
+          <span>The Hindsight Memory Loop: How It Works</span>
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-300">
+          <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/45 border border-white/5 relative">
+            <span className="absolute top-2 right-3 font-mono font-bold text-violet-500/30 text-lg">01</span>
+            <h4 className="font-bold text-white flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-violet-400" />
+              <span>1. Launch & Log</span>
+            </h4>
+            <p className="text-slate-400 leading-relaxed">
+              Create campaigns inside the **Campaign Director** and report results (CTR, watch time, and qualitative feedback) once completed.
+            </p>
+          </div>
+          <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/45 border border-white/5 relative">
+            <span className="absolute top-2 right-3 font-mono font-bold text-violet-500/30 text-lg">02</span>
+            <h4 className="font-bold text-white flex items-center gap-1.5">
+              <Brain className="w-3.5 h-3.5 text-emerald-400" />
+              <span>2. Retain Memory</span>
+            </h4>
+            <p className="text-slate-400 leading-relaxed">
+              The engine automatically digests the qualitative performance and writes a persistent memory node to the **Hindsight Memory Substrate**.
+            </p>
+          </div>
+          <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/45 border border-white/5 relative">
+            <span className="absolute top-2 right-3 font-mono font-bold text-violet-500/30 text-lg">03</span>
+            <h4 className="font-bold text-white flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>3. Recall & Reflect</span>
+            </h4>
+            <p className="text-slate-400 leading-relaxed">
+              Enter parameters in the **AI Strategist**. It recalls matching memories and reflects on wins/failures to output optimized hooks and scripts.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Overview Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
@@ -128,8 +170,14 @@ export default function DashboardConsole() {
             </div>
           </div>
           <div className="text-xs text-slate-400 mt-4 flex items-center gap-1">
-            <span className="text-cyan-400 font-semibold">1.8x</span>
-            <span>higher than SaaS benchmark</span>
+            {summary.averageCtr > 0 ? (
+              <>
+                <span className="text-cyan-400 font-semibold">{(summary.averageCtr / 2.0).toFixed(1)}x</span>
+                <span>higher than SaaS benchmark (2.0%)</span>
+              </>
+            ) : (
+              <span>No performance data yet</span>
+            )}
           </div>
         </div>
 
@@ -152,7 +200,7 @@ export default function DashboardConsole() {
             </div>
           </div>
           <div className="text-xs text-slate-400 mt-4 flex items-center gap-1">
-            <span className="text-emerald-400 font-semibold">{summary.bestCampaign ? `${summary.bestCampaign.ctr}% CTR` : '0.00%'}</span>
+            <span className="text-emerald-400 font-semibold">{summary.bestCampaign ? `${summary.bestCampaign.ctr}% CTR` : 'N/A'}</span>
             <span>Top performer recorded</span>
           </div>
         </div>
@@ -177,10 +225,10 @@ export default function DashboardConsole() {
       </div>
 
       {/* Main Panel Content: Recent Campaigns & Memory status */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         
         {/* Left Side: Recent Campaigns Table */}
-        <div className="lg:col-span-8 border border-white/5 rounded-2xl bg-slate-900/30 p-6 glass flex flex-col">
+        <div className="md:col-span-8 border border-white/5 rounded-2xl bg-slate-900/30 p-6 glass flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="text-lg font-bold text-white">Recent Launch Logs</h3>
@@ -260,7 +308,7 @@ export default function DashboardConsole() {
         </div>
 
         {/* Right Side: Quick Action & Memory Reflection */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
+        <div className="md:col-span-4 flex flex-col gap-6">
           
           {/* Quick AI Strategist prompt shortcut */}
           <div className="border border-white/5 rounded-2xl bg-gradient-to-br from-violet-900/20 to-slate-900/60 p-6 glass flex flex-col justify-between relative overflow-hidden">

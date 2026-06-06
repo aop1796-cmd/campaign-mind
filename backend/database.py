@@ -26,6 +26,146 @@ def get_db():
             db = MockFirestoreClient()
     return db
 
+def seed_db():
+    client = get_db()
+    try:
+        c_docs = client.collection("campaigns").stream()
+        has_docs = False
+        for _ in c_docs:
+            has_docs = True
+            break
+    except Exception as e:
+        print(f"Error checking for seed data: {e}")
+        has_docs = False
+
+    if not has_docs:
+        print("Seeding database with demo campaigns, results, and memories...")
+        campaigns_data = [
+            {
+                "id": 101,
+                "brand": "GlowSerums",
+                "industry": "Skincare",
+                "audience": "Women 20-35 interested in clean beauty",
+                "style": "UGC",
+                "goal": "Sales",
+                "created_at": "2026-06-01T10:00:00Z",
+                "user_id": "mock_user_123"
+            },
+            {
+                "id": 102,
+                "brand": "RadiantSkin",
+                "industry": "Skincare",
+                "audience": "Women 20-35 interested in clean beauty",
+                "style": "Founder Video",
+                "goal": "Brand Awareness",
+                "created_at": "2026-06-02T11:00:00Z",
+                "user_id": "mock_user_123"
+            },
+            {
+                "id": 103,
+                "brand": "ClearSkinCo",
+                "industry": "Skincare",
+                "audience": "Women 20-35 interested in clean beauty",
+                "style": "Before/After UGC",
+                "goal": "Sales",
+                "created_at": "2026-06-03T12:00:00Z",
+                "user_id": "mock_user_123"
+            },
+            {
+                "id": 104,
+                "brand": "SaaSify",
+                "industry": "SaaS",
+                "audience": "Small business owners",
+                "style": "Demo Video",
+                "goal": "Lead Generation",
+                "created_at": "2026-06-04T09:00:00Z",
+                "user_id": "mock_user_123"
+            }
+        ]
+        
+        results_data = [
+            {
+                "id": 201,
+                "campaign_id": 101,
+                "ctr": 4.8,
+                "watch_time": 10.5,
+                "conversion_rate": 2.1,
+                "feedback": "UGC style was highly engaging and generated high CTR.",
+                "created_at": "2026-06-01T18:00:00Z",
+                "user_id": "mock_user_123"
+            },
+            {
+                "id": 202,
+                "campaign_id": 102,
+                "ctr": 2.1,
+                "watch_time": 8.0,
+                "conversion_rate": 0.8,
+                "feedback": "Founder story video underperformed. Users dropped off quickly.",
+                "created_at": "2026-06-02T19:00:00Z",
+                "user_id": "mock_user_123"
+            },
+            {
+                "id": 203,
+                "campaign_id": 103,
+                "ctr": 5.2,
+                "watch_time": 18.4,
+                "conversion_rate": 3.5,
+                "feedback": "Before/After UGC transition increased retention and drove massive purchases.",
+                "created_at": "2026-06-03T20:00:00Z",
+                "user_id": "mock_user_123"
+            },
+            {
+                "id": 204,
+                "campaign_id": 104,
+                "ctr": 3.2,
+                "watch_time": 14.1,
+                "conversion_rate": 1.5,
+                "feedback": "SaaS demo video had moderate clicks, but high conversion for those who watched past 10s.",
+                "created_at": "2026-06-04T17:00:00Z",
+                "user_id": "mock_user_123"
+            }
+        ]
+        
+        memories_data = [
+            {
+                "id": 301,
+                "campaign_id": 101,
+                "memory_text": "Campaign ID 101 for GlowSerums (Skincare industry). Style: UGC. Audience: Women 20-35 interested in clean beauty. Performance: CTR 4.8%, Conversion Rate 2.1%. Client Feedback/Learnings: UGC style was highly engaging and generated high CTR.",
+                "created_at": "2026-06-01T18:05:00Z",
+                "user_id": "mock_user_123"
+            },
+            {
+                "id": 302,
+                "campaign_id": 102,
+                "memory_text": "Campaign ID 102 for RadiantSkin (Skincare industry). Style: Founder Video. Audience: Women 20-35 interested in clean beauty. Performance: CTR 2.1%, Conversion Rate 0.8%. Client Feedback/Learnings: Founder story video underperformed. Users dropped off quickly.",
+                "created_at": "2026-06-02T19:05:00Z",
+                "user_id": "mock_user_123"
+            },
+            {
+                "id": 303,
+                "campaign_id": 103,
+                "memory_text": "Campaign ID 103 for ClearSkinCo (Skincare industry). Style: Before/After UGC. Audience: Women 20-35 interested in clean beauty. Performance: CTR 5.2%, Conversion Rate 3.5%. Client Feedback/Learnings: Before/After UGC transition increased retention and drove massive purchases.",
+                "created_at": "2026-06-03T20:05:00Z",
+                "user_id": "mock_user_123"
+            },
+            {
+                "id": 304,
+                "campaign_id": 104,
+                "memory_text": "Campaign ID 104 for SaaSify (SaaS industry). Style: Demo Video. Audience: Small business owners. Performance: CTR 3.2%, Conversion Rate 1.5%. Client Feedback/Learnings: SaaS demo video had moderate clicks, but high conversion for those who watched past 10s.",
+                "created_at": "2026-06-04T17:05:00Z",
+                "user_id": "mock_user_123"
+            }
+        ]
+        
+        for c in campaigns_data:
+            client.collection("campaigns").document(str(c["id"])).set(c)
+        for r in results_data:
+            client.collection("campaign_results").document(str(r["id"])).set(r)
+        for m in memories_data:
+            client.collection("memories").document(str(m["id"])).set(m)
+            
+        print("Database seeding completed successfully.")
+
 def init_db():
     """
     Initializes the database connection.
@@ -33,6 +173,7 @@ def init_db():
     """
     get_db()
     print("Database connection initialized successfully (live Firestore or in-memory fallback).")
+    seed_db()
 
 # CRUD Operations
 

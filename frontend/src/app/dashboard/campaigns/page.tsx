@@ -178,11 +178,17 @@ export default function CampaignsPage() {
             <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
             <span className="text-xs text-slate-400 font-mono">Querying database campaigns...</span>
           </div>
+        ) : campaigns.length === 0 ? (
+          <div className="text-center py-12 text-slate-500">
+            <Layers className="w-12 h-12 text-slate-700 mx-auto mb-3 animate-pulse" />
+            <p className="text-sm font-semibold text-white">No campaigns logged yet.</p>
+            <p className="text-xs text-slate-400 mt-1">Launch your first campaign by clicking the button above!</p>
+          </div>
         ) : filteredCampaigns.length === 0 ? (
           <div className="text-center py-12 text-slate-500">
             <Layers className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-            <p className="text-sm font-semibold">No campaigns matched your filters.</p>
-            <p className="text-xs text-slate-600 mt-1">Try resetting the search terms or style filter.</p>
+            <p className="text-sm font-semibold text-white">No campaigns matched your filters.</p>
+            <p className="text-xs text-slate-400 mt-1">Try resetting the search terms or style filter.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -345,7 +351,7 @@ export default function CampaignsPage() {
                 <button 
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-gradient-to-r from-violet-600 to-cyan-500 hover:opacity-90 text-white rounded-xl text-xs font-bold transition-opacity flex items-center gap-1 shadow-lg shadow-violet-500/10"
+                  className="px-5 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:opacity-90 text-white rounded-xl text-xs font-bold transition-opacity flex items-center gap-1 shadow-lg shadow-violet-500/10"
                 >
                   {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Launch Campaign</span>

@@ -67,57 +67,29 @@ const MOCK_ANALYTICS: AnalyticsData = {
   }
 };
 
-// Common chart display options
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false,
-    },
-    tooltip: {
-      backgroundColor: '#090b16',
-      titleColor: '#fff',
-      bodyColor: '#cbd5e1',
-      borderColor: 'rgba(255,255,255,0.08)',
-      borderWidth: 1,
-      padding: 10,
-      cornerRadius: 8,
-      bodyFont: {
-        family: 'monospace',
-      }
-    }
-  },
-  scales: {
-    x: {
-      grid: {
-        color: 'rgba(255, 255, 255, 0.03)',
-      },
-      ticks: {
-        color: '#64748b',
-        font: {
-          size: 10,
-        }
-      }
-    },
-    y: {
-      grid: {
-        color: 'rgba(255, 255, 255, 0.03)',
-      },
-      ticks: {
-        color: '#64748b',
-        font: {
-          size: 10,
-        }
-      }
-    }
-  }
-};
-
 export default function AnalyticsConsole() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // Monitor theme class changes on <html> tag
+  useEffect(() => {
+    const isLight = document.documentElement.classList.contains('light');
+    setTheme(isLight ? 'light' : 'dark');
+
+    const observer = new MutationObserver(() => {
+      const currentLight = document.documentElement.classList.contains('light');
+      setTheme(currentLight ? 'light' : 'dark');
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     async function loadAnalytics() {
@@ -136,6 +108,96 @@ export default function AnalyticsConsole() {
     }
     loadAnalytics();
   }, []);
+
+  // Theme-responsive styling configuration
+  const isLight = theme === 'light';
+  const gridColor = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.03)';
+  const labelColor = isLight ? '#475569' : '#64748b';
+  const tooltipBg = isLight ? '#ffffff' : '#090b16';
+  const tooltipTitle = isLight ? '#0f172a' : '#ffffff';
+  const tooltipBody = isLight ? '#334155' : '#cbd5e1';
+  const tooltipBorder = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+
+  const baseChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: tooltipBg,
+        titleColor: tooltipTitle,
+        bodyColor: tooltipBody,
+        borderColor: tooltipBorder,
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+        bodyFont: {
+          family: 'monospace',
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          color: gridColor,
+        },
+        ticks: {
+          color: labelColor,
+          font: {
+            size: 10,
+          }
+        }
+      }
+    }
+  };
+
+  const ctrChartOptions = {
+    ...baseChartOptions,
+    scales: {
+      ...baseChartOptions.scales,
+      y: {
+        grid: {
+          color: gridColor,
+        },
+        ticks: {
+          color: labelColor,
+          font: {
+            size: 10,
+          },
+          callback: function(value: any) {
+            return value + '%';
+          }
+        }
+      }
+    }
+  };
+
+  const countChartOptions = {
+    ...baseChartOptions,
+    scales: {
+      ...baseChartOptions.scales,
+      y: {
+        grid: {
+          color: gridColor,
+        },
+        ticks: {
+          color: labelColor,
+          font: {
+            size: 10,
+          },
+          callback: function(value: any) {
+            if (value % 1 === 0) {
+              return value;
+            }
+            return null;
+          }
+        }
+      }
+    }
+  };
+
 
   if (loading || !data) {
     return (
@@ -264,7 +326,7 @@ export default function AnalyticsConsole() {
             </div>
           </div>
           <div className="flex-1 relative min-h-0">
-            <Line data={ctrTrendsData} options={chartOptions} />
+            <Line data={ctrTrendsData} options={ctrChartOptions} />
           </div>
         </div>
 
@@ -280,7 +342,7 @@ export default function AnalyticsConsole() {
             </div>
           </div>
           <div className="flex-1 relative min-h-0">
-            <Line data={memoryGrowthData} options={chartOptions} />
+            <Line data={memoryGrowthData} options={countChartOptions} />
           </div>
         </div>
 
@@ -296,7 +358,7 @@ export default function AnalyticsConsole() {
             </div>
           </div>
           <div className="flex-1 relative min-h-0">
-            <Bar data={stylePerfData} options={chartOptions} />
+            <Bar data={stylePerfData} options={ctrChartOptions} />
           </div>
         </div>
 
@@ -312,7 +374,7 @@ export default function AnalyticsConsole() {
             </div>
           </div>
           <div className="flex-1 relative min-h-0">
-            <Bar data={industryPerfData} options={chartOptions} />
+            <Bar data={industryPerfData} options={ctrChartOptions} />
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Brain, 
@@ -15,13 +15,35 @@ import {
   RotateCcw,
   BarChart3,
   Lightbulb,
-  History
+  History,
+  Sun,
+  Moon
 } from 'lucide-react';
+
 import { SignInButton } from '@/components/AuthComponents';
 
 export default function LandingPage() {
   const [demoStep, setDemoStep] = useState(1);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // Synchronize theme on load
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
+    const initialTheme = savedTheme || 'dark';
+    setTheme(initialTheme);
+    document.documentElement.classList.toggle('light', initialTheme === 'light');
+    document.documentElement.classList.toggle('dark', initialTheme === 'dark');
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('theme', nextTheme);
+    document.documentElement.classList.toggle('light', nextTheme === 'light');
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+  };
+
 
   // Define the outputs for the 3 steps of the demo
   const demoData = [
@@ -115,10 +137,24 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-4">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-white/5 transition-all flex items-center justify-center cursor-pointer"
+              title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-indigo-400" />
+              )}
+            </button>
+
             <SignInButton>
               <span>Dashboard</span>
             </SignInButton>
           </div>
+
         </div>
       </header>
 

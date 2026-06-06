@@ -4,23 +4,72 @@
 :root {
   --background: #03040b;
   --foreground: #f8fafc;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  
   --card: rgba(13, 16, 35, 0.45);
   --card-border: rgba(255, 255, 255, 0.06);
+  --sidebar: #080914;
+  --sidebar-border: rgba(255, 255, 255, 0.05);
+  --header-bg: rgba(8, 9, 20, 0.4);
+  
   --accent-primary: #8b5cf6;
   --accent-secondary: #06b6d4;
   --accent-emerald: #10b981;
   --accent-rose: #f43f5e;
   
   --font-sans: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  
+  --border-color: rgba(255, 255, 255, 0.05);
+  --scrollbar-bg: #03040b;
+}
+
+.light {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  
+  --card: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(15, 23, 42, 0.08);
+  --sidebar: #f1f5f9;
+  --sidebar-border: rgba(15, 23, 42, 0.08);
+  --header-bg: rgba(241, 245, 249, 0.4);
+  
+  --accent-primary: #7c3aed;
+  --accent-secondary: #0891b2;
+  --accent-emerald: #059669;
+  --accent-rose: #e11d48;
+  
+  --border-color: rgba(15, 23, 42, 0.08);
+  --scrollbar-bg: #f8fafc;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-header-bg: var(--header-bg);
+  
   --color-accent-purple: var(--accent-primary);
   --color-accent-cyan: var(--accent-secondary);
   --color-accent-emerald: var(--accent-emerald);
   --color-accent-rose: var(--accent-rose);
+  
+  --color-border-color: var(--border-color);
+  
   --font-sans: var(--font-sans);
 }
 
@@ -39,6 +88,12 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.light .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(15, 23, 42, 0.08);
 }
 
 .glass-card {
@@ -49,6 +104,12 @@ body {
   border-radius: 1rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+.light .glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(241, 245, 249, 0.6) 100%);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
 
 .glass-card:hover {
   border-color: rgba(139, 92, 246, 0.3);
@@ -127,7 +188,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #03040b;
+  background: var(--scrollbar-bg);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -138,3 +199,75 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.5);
 }
+
+/* Light Mode Utility Overrides */
+.light {
+  .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-50, .text-gray-100, .text-gray-200, .text-gray-300 {
+    color: var(--text-primary) !important;
+  }
+  
+  .text-slate-400, .text-slate-500, .text-gray-400, .text-gray-500 {
+    color: var(--text-muted) !important;
+  }
+
+  /* Override text-white to text-primary globally */
+  .text-white {
+    color: var(--text-primary) !important;
+  }
+
+  /* Keep white text on filled buttons/badges/indicators */
+  .bg-violet-600 .text-white,
+  .bg-violet-600.text-white,
+  .bg-violet-700 .text-white,
+  .bg-violet-700.text-white,
+  .bg-fuchsia-600 .text-white,
+  .bg-fuchsia-600.text-white,
+  .bg-emerald-600 .text-white,
+  .bg-emerald-600.text-white,
+  .bg-indigo-600 .text-white,
+  .bg-indigo-600.text-white,
+  .bg-cyan-600 .text-white,
+  .bg-cyan-600.text-white,
+  .bg-rose-500 .text-white,
+  .bg-rose-500.text-white,
+  .bg-gradient-to-r .text-white,
+  .bg-gradient-to-r.text-white,
+  .bg-gradient-to-tr .text-white,
+  .bg-gradient-to-tr.text-white,
+  button .text-white,
+  button.text-white,
+  .btn .text-white,
+  .btn.text-white,
+  a[class*="bg-violet"] *,
+  button span,
+  a span,
+  .bg-blue-600 .text-white,
+  .bg-blue-600.text-white,
+  .bg-gradient-to-tr .text-white {
+    color: #ffffff !important;
+  }
+
+  .border-white\/5, .border-white\/10, .border-slate-800, .border-slate-800\/50, .border-slate-700, .border-slate-700\/50, .border-gray-800 {
+    border-color: var(--border-color) !important;
+  }
+
+  .bg-slate-900\/50, .bg-slate-900\/40, .bg-slate-900\/30, .bg-slate-950\/80, .bg-slate-950\/45, .bg-slate-950, .bg-\[\#090b16\], .bg-\[\#0c0d1b\] {
+    background-color: var(--card) !important;
+  }
+  
+  /* Pricing highlighted card overrides */
+  .border-violet-500\/50.bg-\[\#0c0d1b\] {
+    background-color: rgba(124, 58, 237, 0.04) !important;
+    border-color: var(--accent-primary) !important;
+  }
+
+  /* Text gradients for light mode readability (including logo text) */
+  .text-gradient,
+  .bg-gradient-to-r.bg-clip-text.text-transparent {
+    background-image: linear-gradient(to right, var(--text-primary), var(--accent-primary)) !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+  }
+}
+
+

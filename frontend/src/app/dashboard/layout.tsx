@@ -13,7 +13,9 @@ import {
   X,
   Database,
   Wifi,
-  WifiOff
+  WifiOff,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { UserButton } from '@/components/AuthComponents';
 
@@ -25,6 +27,24 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const pathname = usePathname();
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // Synchronize theme on load
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
+    const initialTheme = savedTheme || 'dark';
+    setTheme(initialTheme);
+    document.documentElement.classList.toggle('light', initialTheme === 'light');
+    document.documentElement.classList.toggle('dark', initialTheme === 'dark');
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('theme', nextTheme);
+    document.documentElement.classList.toggle('light', nextTheme === 'light');
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+  };
 
   // Navigation Items
   const navItems = [
@@ -58,7 +78,7 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="flex h-screen bg-[#03040b] text-slate-100 overflow-hidden font-sans">
+    <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
       
       {/* MOBILE SIDEBAR MOBILE DRAWER */}
       {sidebarOpen && (
@@ -70,12 +90,13 @@ export default function DashboardLayout({
 
       {/* SIDEBAR CONTAINER */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 border-r border-white/5 bg-[#080914]/90 backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Sidebar Header Logo */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-white/5">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-sidebar-border">
+
           <Link href="/" className="flex items-center gap-2" onClick={() => setSidebarOpen(false)}>
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-cyan-500 flex items-center justify-center">
               <Brain className="w-4.5 h-4.5 text-white" />
@@ -95,7 +116,9 @@ export default function DashboardLayout({
         {/* Sidebar Nav Items */}
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const isActive = item.href === '/dashboard' 
+              ? pathname === '/dashboard' 
+              : pathname === item.href || pathname.startsWith(item.href + '/');
             return (
               <Link
                 key={item.name}
@@ -115,27 +138,27 @@ export default function DashboardLayout({
         </nav>
 
         {/* System Health / Connection Status */}
-        <div className="p-4 border-t border-white/5 bg-slate-950/20 text-xs">
-          <div className="flex items-center justify-between text-slate-400 px-2">
-            <span className="flex items-center gap-1.5 font-mono">
-              <Database className="w-3.5 h-3.5 text-slate-500" />
-              Firestore DB
+        <div className="mx-4 my-4 p-3.5 rounded-xl border border-sidebar-border bg-card text-xs">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 font-semibold text-slate-400">
+              <Database className="w-4 h-4 text-violet-400" />
+              <span>Database Status</span>
             </span>
-            <span className="flex items-center gap-1 text-[10px]">
+            <span className="flex items-center">
               {backendStatus === 'connected' && (
-                <>
-                  <Wifi className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                  <span className="text-emerald-400 font-bold uppercase">Online</span>
-                </>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  ONLINE
+                </span>
               )}
               {backendStatus === 'disconnected' && (
-                <>
-                  <WifiOff className="w-3.5 h-3.5 text-rose-500" />
-                  <span className="text-rose-500 font-bold uppercase">Offline</span>
-                </>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  OFFLINE
+                </span>
               )}
               {backendStatus === 'checking' && (
-                <span className="text-slate-500 animate-pulse">Syncing...</span>
+                <span className="text-slate-500 animate-pulse font-medium text-[10px] tracking-wider uppercase">Syncing...</span>
               )}
             </span>
           </div>
@@ -146,7 +169,7 @@ export default function DashboardLayout({
       <div className="flex-1 flex flex-col overflow-hidden relative">
         
         {/* Top Navbar */}
-        <header className="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#080914]/40 backdrop-blur-md relative z-30">
+        <header className="h-16 flex items-center justify-between px-6 border-b border-sidebar-border bg-header-bg backdrop-blur-md relative z-30">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setSidebarOpen(true)}
@@ -170,12 +193,27 @@ export default function DashboardLayout({
                 <WifiOff className="w-3 h-3" /> API Server Connection Error. Run backend first!
               </span>
             )}
+            
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-sidebar-border transition-all flex items-center justify-center cursor-pointer"
+              title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-indigo-400" />
+              )}
+            </button>
+
             <UserButton />
           </div>
         </header>
 
         {/* Scrollable Workspace Container */}
-        <main className="flex-1 overflow-y-auto bg-[#03040b] p-6 relative">
+        <main className="flex-1 overflow-y-auto bg-background p-6 relative">
+
           {children}
         </main>
       </div>

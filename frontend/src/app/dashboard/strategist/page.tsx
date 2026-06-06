@@ -276,21 +276,21 @@ export default function StrategistPage() {
                 <div className="flex items-center justify-between border-b border-white/5 pb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold px-2 py-0.5 rounded bg-violet-500/10 border border-violet-500/20 text-violet-400">
-                      Style: {result!.strategy.creativeStyle}
+                      Style: {result?.strategy?.creativeStyle || ""}
                     </span>
                     <span className="text-xs font-mono text-slate-400">
-                      {(result!.strategy as any).provider || "Groq Llama-3 Output"}
+                      {(result?.strategy as any)?.provider || "Groq Llama-3 Output"}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1.5 text-xs font-semibold relative group">
                     <span className="text-slate-500">Confidence:</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${
-                      result!.strategy.confidence === "High" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
-                      result!.strategy.confidence === "Medium" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" :
+                      result?.strategy?.confidence === "High" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                      result?.strategy?.confidence === "Medium" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" :
                       "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                     }`}>
-                      {result!.strategy.confidence}
+                      {result?.strategy?.confidence || "Low"}
                     </span>
                     <div className="w-3.5 h-3.5 rounded-full bg-slate-800 text-[10px] text-slate-400 flex items-center justify-center cursor-help select-none hover:text-white transition-colors">
                       ?
@@ -308,7 +308,7 @@ export default function StrategistPage() {
                     Recommended Hook
                   </span>
                   <p className="text-lg md:text-xl font-extrabold text-white leading-relaxed italic">
-                    &ldquo;{result!.strategy.recommendedHook}&rdquo;
+                    &ldquo;{result?.strategy?.recommendedHook || ""}&rdquo;
                   </p>
                 </div>
 
@@ -320,7 +320,7 @@ export default function StrategistPage() {
                       <span>Hindsight Insights</span>
                     </div>
                     <ul className="text-xs text-slate-300 space-y-2 pl-4 list-disc">
-                      {result!.strategy.memoryInsights.map((insight, idx) => (
+                      {(result?.strategy?.memoryInsights || []).map((insight, idx) => (
                         <li key={idx} className="leading-relaxed">{insight}</li>
                       ))}
                     </ul>
@@ -332,7 +332,7 @@ export default function StrategistPage() {
                       <span>Strategic Rationale</span>
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      {result!.strategy.strategy}
+                      {result?.strategy?.strategy || ""}
                     </p>
                   </div>
                 </div>
@@ -363,7 +363,7 @@ export default function StrategistPage() {
                   </div>
                   
                   <div className="bg-slate-950 p-4 rounded-xl border border-white/5 font-mono text-xs text-slate-300 leading-relaxed whitespace-pre-line select-all">
-                    {result!.strategy.adScript}
+                    {result?.strategy?.adScript || ""}
                   </div>
                 </div>
 

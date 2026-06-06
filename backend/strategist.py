@@ -37,6 +37,67 @@ def clean_and_parse_json(text: str) -> Dict[str, Any]:
     text = text.strip()
     return json.loads(text)
 
+def normalize_strategy_keys(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Normalizes the keys of the generated strategy to ensure camelCase keys
+    are always returned to the frontend, even if the LLM output used snake_case.
+    """
+    normalized = {}
+    
+    # Map of possible LLM output keys to target camelCase keys
+    key_mapping = {
+        "memoryinsights": "memoryInsights",
+        "memory_insights": "memoryInsights",
+        "memoryinsights": "memoryInsights",
+        "memory_insight": "memoryInsights",
+        "memoryinsightslist": "memoryInsights",
+        
+        "recommendedhook": "recommendedHook",
+        "recommended_hook": "recommendedHook",
+        "recommendedhook": "recommendedHook",
+        
+        "creativestyle": "creativeStyle",
+        "creative_style": "creativeStyle",
+        
+        "strategy": "strategy",
+        
+        "adscript": "adScript",
+        "ad_script": "adScript",
+        
+        "confidence": "confidence",
+        "provider": "provider"
+    }
+    
+    for k, v in data.items():
+        target_key = key_mapping.get(k.lower())
+        if target_key:
+            normalized[target_key] = v
+        else:
+            normalized[k] = v
+            
+    # Guarantee all required keys are present
+    required_defaults = {
+        "memoryInsights": [],
+        "recommendedHook": "",
+        "creativeStyle": "Direct Response",
+        "strategy": "",
+        "adScript": "",
+        "confidence": "Low"
+    }
+    
+    for req_key, default_val in required_defaults.items():
+        if req_key not in normalized:
+            normalized[req_key] = default_val
+            
+    # Ensure memoryInsights is a list
+    if not isinstance(normalized["memoryInsights"], list):
+        if isinstance(normalized["memoryInsights"], str):
+            normalized["memoryInsights"] = [normalized["memoryInsights"]]
+        else:
+            normalized["memoryInsights"] = []
+            
+    return normalized
+
 def run_mock_strategist(industry: str, style: str, audience: str, memories: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Mock strategist that simulates the hindsight learning progression based on retrieved campaigns.
@@ -213,6 +274,7 @@ HINDSIGHT MEMORY CONTEXT:
             
             response_text = completion.choices[0].message.content
             strategy_dict = clean_and_parse_json(response_text)
+            strategy_dict = normalize_strategy_keys(strategy_dict)
             strategy_dict["provider"] = "NVIDIA NIM (Llama-3.1-8b)"
             return strategy_dict
         except Exception as e:
@@ -235,6 +297,7 @@ HINDSIGHT MEMORY CONTEXT:
             
             response_text = completion.choices[0].message.content
             strategy_dict = clean_and_parse_json(response_text)
+            strategy_dict = normalize_strategy_keys(strategy_dict)
             strategy_dict["provider"] = "Groq API (Llama-3-8b)"
             return strategy_dict
         except Exception as e:
@@ -242,5 +305,6 @@ HINDSIGHT MEMORY CONTEXT:
 
     # 3. Fallback to mock strategist
     strategy_dict = run_mock_strategist(industry, style, audience, recalled_memories)
+    strategy_dict = normalize_strategy_keys(strategy_dict)
     strategy_dict["provider"] = "Mock Simulator (Hindsight Fallback)"
     return strategy_dict
